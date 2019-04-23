@@ -15,8 +15,9 @@ def parser(x):
 
 series = read_csv('data/bitstamp.csv', header=0,
                   parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)
-price = series.iloc[:, [6]].fillna(method='ffill')
-open = series.iloc[]
+price = series.iloc[:, [6]].fillna(method ='ffill')
+open = series.iloc[:, [0]].fillna(method ='ffill')
+high = series.iloc[:, [1]].fillna(method = 'ffill')
 
 model = ARIMA(price, order=(5, 1, 0), missing='nan')
 model_fit = model.fit(disp=0)
@@ -32,23 +33,52 @@ print(residuals.describe())
 # price = read_csv('data/bitstamp.csv', header=0,parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)
 # X = price.iloc[:, [6]].fillna(method='ffill').head(100000).values
 X = price.values
+openValues = open.values
+highValues = high.values
 size = int(len(X) * 0.66)
-train, test = X[0:size], X[size:len(X)]
-history = [x for x in train]
+series = read_csv('CMPE-256-Large-Scale-Analytics-/data/bitstamp.csv',
+                  header=0, parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)
+# X = series.iloc[:,[6]].fillna(method = 'ffill').head(1000).values
+price = series.iloc[:, [6]].fillna(method='ffill').head(1000).values
+open = series.iloc[:, [0]].fillna(method='ffill').head(1000).values
+high = series.iloc[:, [1]].fillna(method='ffill').head(1000).values
+size = int(len(price) * 0.66)
+trainPrice, testPrice = price[0:size], price[size:len(price)]
+trainOpen, testOpen = open[0:size], open[size: len(price)]
+trainHigh, testHigh = high[0:size], high[size: len(price)]
+historyPrice = [x for x in trainPrice]
+historyOpen = [x for x in trainOpen]
+historyHigh = [x for x in trainHigh]
 predictions = list()
-# print (history)
-for t in range(len(test)):
-	model = ARIMA(history, order=(5, 1, 0))
-	model_fit = model.fit(disp=0)
-	output = model_fit.forecast()
-	yhat = output[0]
-	predictions.append(yhat)
-	obs = test[t]
-	history.append(obs)
-	print('predicted=%f, expected=%f' % (yhat, obs))
-error = mean_squared_error(test, predictions)
+# print (testOpen)
+testLen = len(testPrice)
+for t in range(testLen):
+    priceModel = ARIMA(historyPrice, order=(5, 1, 0)).fit(disp=0)
+    openModel = ARIMA(historyOpen, order=(5, 1, 0)).fit(disp=0)
+    highModel = ARIMA(historyHigh, order=(5, 1, 0)).fit(disp=0)
+    # model_fit = model.fit(disp=0)
+    outputPrice = priceModel.forecast()
+    outputOpen = openModel.forecast()
+    outputHigh = highModel.forecast()
+    predict = list()
+    predict.append(outputPrice[0])
+    predict.append(outputOpen[0])
+    predict.append(outputPrice[0])
+    # yhat = output[0]
+    predictions.append(predict)
+    # predict = list()
+    outputTest = list()
+    outputTest.append(testPrice[t])
+    outputTest.append(testOpen[t])
+    outputTest.append(testHigh[t])
+    # history.append(obs)
+    print('predicted=%f %f %f, expected=%f %f %f' % (
+        predict[0], predict[1], predict[2], outputTest[0], outputTest[1], outputTest[2]))
+#     print('predicted')
+#     print(predict)
+# error = mean_squared_error(test, predictions)
 print('Test MSE: %.3f' % error)
 # plot
-pyplot.plot(test)
+# pyplot.plot(test)
 pyplot.plot(predictions, color='red')
 pyplot.show()
