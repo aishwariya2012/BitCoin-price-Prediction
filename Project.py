@@ -15,9 +15,10 @@ def parser(x):
 
 series = read_csv('data/bitstamp.csv', header=0,
                   parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)
-series = series.iloc[:, [6]].fillna(method='ffill')
+price = series.iloc[:, [6]].fillna(method='ffill')
+open = series.iloc[]
 
-model = ARIMA(series, order=(5, 1, 0), missing='nan')
+model = ARIMA(price, order=(5, 1, 0), missing='nan')
 model_fit = model.fit(disp=0)
 print(model_fit.summary())
 # plot residual errors
@@ -28,9 +29,9 @@ residuals.plot(kind='kde')
 pyplot.show()
 print(residuals.describe())
 
-# series = read_csv('data/bitstamp.csv', header=0,parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)
-# X = series.iloc[:, [6]].fillna(method='ffill').head(100000).values
-X = series.values
+# price = read_csv('data/bitstamp.csv', header=0,parse_dates=[0], index_col=0, squeeze=True, date_parser=parser)
+# X = price.iloc[:, [6]].fillna(method='ffill').head(100000).values
+X = price.values
 size = int(len(X) * 0.66)
 train, test = X[0:size], X[size:len(X)]
 history = [x for x in train]
